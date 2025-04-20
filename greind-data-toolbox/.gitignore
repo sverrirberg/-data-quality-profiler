@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+*.csv
+*.xlsx
+*.xls
+*.json
+!requirements.txt
+temp/
+logs/
+
+# Model + data files
+*.pkl
+
+# Logs + feedback
+logs/
+*.log
+
+# System files
+.DS_Store
+
+# Jupyter + notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# Virtual environment
+.venv/
+
+# macOS
+.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Streamlit logs
+.streamlit/
+
+# Jupyter & profiler outputs
+.ipynb_checkpoints/
+*.html
+
+# Model & data files
+*.pkl
+*.log
+feedback_logs/
+datasets/
+
+# Allow model files
+!xgb_unspsc_model.pkl
+!xgb_label_encoder.pkl
+
+# But keep this specific one
+!UNSPSC_classification.csv
