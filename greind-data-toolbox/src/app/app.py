@@ -790,70 +790,80 @@ if profiling_file:
             selected_columns = st.session_state.selected_columns.copy()
             
             if selected_columns:
-                # Apply date filter if selected
-                if 'date_range' in locals() and date_range and len(date_range) == 2 and date_col:
-                    try:
-                        start_date, end_date = date_range
-                        mask = (df[date_col] >= pd.to_datetime(start_date)) & \
-                               (df[date_col] <= pd.to_datetime(end_date))
-                        filtered_df = df[mask]
-                    except:
-                        filtered_df = df
-                        st.warning("Could not apply date filter. Showing all data.")
+                # Validate selected columns
+                valid_columns = [col for col in selected_columns if col in df.columns]
+                if len(valid_columns) != len(selected_columns):
+                    invalid_columns = set(selected_columns) - set(df.columns)
+                    st.warning(f"The following columns were not found in the dataset and will be ignored: {', '.join(invalid_columns)}")
+                    selected_columns = valid_columns
+                
+                if not selected_columns:
+                    st.error("No valid columns selected. Please select at least one valid column.")
                 else:
-                    filtered_df = df
-                
-                # Get rows with missing values in selected columns
-                missing_df = filtered_df[filtered_df[selected_columns].isnull().any(axis=1)][selected_columns]
-                
-                # Add Missing In column
-                missing_df['Missing In'] = missing_df.apply(
-                    lambda row: ', '.join([col for col in selected_columns if pd.isnull(row[col])]),
-                    axis=1
-                )
-                
-                # Add original line number (adding 2 because Excel starts at 1 and we have a header row)
-                missing_df['Line Number Original'] = missing_df.index + 2
-                
-                # Add download format options
-                st.markdown("### 📥 Download Options")
-                download_format = st.radio(
-                    "Select download format",
-                    ["CSV", "Excel", "JSON"],
-                    horizontal=True
-                )
-                
-                # Prepare final dataframe for download (Line Number Original first, then selected columns and Missing In)
-                columns_order = ['Line Number Original'] + selected_columns + ['Missing In']
-                download_df = missing_df[columns_order]
-                
-                if download_format == "CSV":
-                    csv = download_df.to_csv(index=False)
-                    st.download_button(
-                        label="📥 Download CSV",
-                        data=csv,
-                        file_name="missing_values_report.csv",
-                        mime="text/csv"
+                    # Apply date filter if selected
+                    if 'date_range' in locals() and date_range and len(date_range) == 2 and date_col:
+                        try:
+                            start_date, end_date = date_range
+                            mask = (df[date_col] >= pd.to_datetime(start_date)) & \
+                                   (df[date_col] <= pd.to_datetime(end_date))
+                            filtered_df = df[mask]
+                        except:
+                            filtered_df = df
+                            st.warning("Could not apply date filter. Showing all data.")
+                    else:
+                        filtered_df = df
+                    
+                    # Get rows with missing values in selected columns
+                    missing_df = filtered_df[filtered_df[selected_columns].isnull().any(axis=1)][selected_columns]
+                    
+                    # Add Missing In column
+                    missing_df['Missing In'] = missing_df.apply(
+                        lambda row: ', '.join([col for col in selected_columns if pd.isnull(row[col])]),
+                        axis=1
                     )
-                elif download_format == "Excel":
-                    excel_buffer = io.BytesIO()
-                    with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
-                        download_df.to_excel(writer, index=False, sheet_name='Missing Values')
-                    excel_data = excel_buffer.getvalue()
-                    st.download_button(
-                        label="📥 Download Excel",
-                        data=excel_data,
-                        file_name="missing_values_report.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    
+                    # Add original line number (adding 2 because Excel starts at 1 and we have a header row)
+                    missing_df['Line Number Original'] = missing_df.index + 2
+                    
+                    # Add download format options
+                    st.markdown("### 📥 Download Options")
+                    download_format = st.radio(
+                        "Select download format",
+                        ["CSV", "Excel", "JSON"],
+                        horizontal=True
                     )
-                else:  # JSON
-                    json_data = download_df.to_json(orient='records', indent=2)
-                    st.download_button(
-                        label="📥 Download JSON",
-                        data=json_data,
-                        file_name="missing_values_report.json",
-                        mime="application/json"
-                    )
+                    
+                    # Prepare final dataframe for download (Line Number Original first, then selected columns and Missing In)
+                    columns_order = ['Line Number Original'] + selected_columns + ['Missing In']
+                    download_df = missing_df[columns_order]
+                    
+                    if download_format == "CSV":
+                        csv = download_df.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download CSV",
+                            data=csv,
+                            file_name="missing_values_report.csv",
+                            mime="text/csv"
+                        )
+                    elif download_format == "Excel":
+                        excel_buffer = io.BytesIO()
+                        with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+                            download_df.to_excel(writer, index=False, sheet_name='Missing Values')
+                        excel_data = excel_buffer.getvalue()
+                        st.download_button(
+                            label="📥 Download Excel",
+                            data=excel_data,
+                            file_name="missing_values_report.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                    else:  # JSON
+                        json_data = download_df.to_json(orient='records', indent=2)
+                        st.download_button(
+                            label="📥 Download JSON",
+                            data=json_data,
+                            file_name="missing_values_report.json",
+                            mime="application/json"
+                        )
             st.markdown("</div>", unsafe_allow_html=True)
         
         # Show data preview
